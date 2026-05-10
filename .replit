@@ -1,0 +1,8 @@
+compile = "gcc tdas/*.c tarea3.c -Wno-unused-result -o tarea3"
+run = "./tarea3"
+
+[agent]
+expertMode = true
+
+[deployment]
+deploymentTarget = "cloudrun"
