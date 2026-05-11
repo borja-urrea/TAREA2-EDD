@@ -6,6 +6,7 @@
 #include <string.h>
 #include <ctype.h>
 
+//Definicion del tipo pelicula para poder almacenar cada pelicula con su informacion completa
 typedef struct{
   char id[100];
   char titulo[100];
@@ -15,6 +16,9 @@ typedef struct{
   float IMBD;
 } Pelicula;
 
+//Funcion utilizada para que todas las palabras sean iguales y no haya errores de comparacion a futuro 
+//en caso de haberse ingresado una completamente en minusculas y despues mezclando minusculas y mayusculas
+//En resumen: DRAMA = draMA = Drama = drama = dRaMA....etc
 void normalizarPalabras(char *str){
   if (str == NULL) return;
   for (int i = 0; str[i]; i++){
@@ -32,6 +36,7 @@ int is_equal_int(void *key1, void *key2) {
   return (*(int *)key1 == *(int *)key2);
 }
 
+//Funciones para mostrar las opciones
 void mostrarMenu(){
   printf("SELECCIONA UNA OPCION PARA COMENZAR\n");
   printf("===================================\n\n");
@@ -53,6 +58,12 @@ void mostrarOpcionesWatchList(){
   printf("0. VOLVER AL MENU PRINCIPAL\n");
 }
 
+//Funcion para cargar el archivo "Top1500.csv"
+//mapa_genero: mapa que asocia nombres de generos con listas de peliculas 
+//mapa_director: mapa que asocia nombres de directores con listas de peliculas 
+//mapa_decada: mapa que asocia años de inicio de decadas con listas de peliculas 
+//mapa_id: mapa que asocia IDs unicos con estructuras de peliculas 
+
 void cargarPeliculas(Map *mapa_genero, Map *mapa_director, Map *mapa_decada, Map *mapa_id){
   FILE *archivo = fopen("data/Top1500.csv", "r");
   if (archivo == NULL){
@@ -60,7 +71,7 @@ void cargarPeliculas(Map *mapa_genero, Map *mapa_director, Map *mapa_decada, Map
     return;
   }
   printf("\n--- ARCHIVO CARGADO CORRECTAMENTE ---\n\n");
-  char **campos;
+  char **campos; //Arreglo de caracteres para cada columna del archivo
   campos = leer_linea_csv(archivo, ',');
 
   while((campos = leer_linea_csv(archivo, ',')) != NULL){
@@ -131,6 +142,9 @@ void cargarPeliculas(Map *mapa_genero, Map *mapa_director, Map *mapa_decada, Map
   fclose(archivo);
 }
 
+//Funcion creada para filtrar peliculas por el genero que ingrese el usuario
+//mapa_genero: al ser el mapa que asocia genero con listas de peliculas este es usado para buscar la existencia
+//de un genero, y en caso de haberla mosrtar por pantalla las peliculas de la lista asociada 
 void buscarPorGenero(Map *mapaGenero){
   printf("\nIngresa el genero que deseas buscar : \n");
   char genero[50];
@@ -172,6 +186,9 @@ void buscarPorGenero(Map *mapaGenero){
   }
 }
 
+//Funcion para filtrar peliculas por el director ingresado por el usuario
+//mapaDirector: al ser el mapa que asocia director con lista de peliculas este es usado para buscar la existencia 
+//del director deseado, y en caso de existir mostrar la lista de peliculas asociadas al mismo
 void buscarPorDirector(Map *mapaDirector) {
   printf("\nIngresa el director que deseas buscar :\n");
   char director[50];
@@ -199,11 +216,16 @@ void buscarPorDirector(Map *mapaDirector) {
   }
 }
 
+//Funcion para filtrar peliculas segun la decada escogida por el usuario 
+//mapaDecada: al ser el mapa que asocia la decada con una lista de peliculas, aqui todas las peliculas ingresadas 
+//fueron asignadas a la decada = añoPelicula - añoPelicula % 10, se busca la decada ingresada por el usuario 
+//y se muestran las peliculas de cuya decada
 void buscarPorDecada(Map *mapaDecada){
   printf("Ingresa la decada que quieres investigar :\n");
   int decada;
   scanf("%i", &decada);
-
+  decada -= decada%10; //garantizar que el usuario ingreso una decada y no un año especifico
+  
   MapPair *par = map_search(mapaDecada, &decada);
   if (par != NULL){
     List *listaPelis = (List *)par -> value;
@@ -219,6 +241,9 @@ void buscarPorDecada(Map *mapaDecada){
   }
 }
 
+//Funcion busquedaAvanzada mezcla la busqueda por genero con la busqueda por decada, el usuario ingresa un genero que quiere 
+//filtrar, y posteriormente una decada la cual le gustaria ver, con esto por ejemplo se mostraria por pantalla 
+//todas las peliculas de horror en la decada del 2000
 void busquedaAvanzada(Map *mapaDecada, Map *mapaGenero){
   int c; 
   while ((c = getchar()) != '\n' && c != EOF);
@@ -257,6 +282,10 @@ void busquedaAvanzada(Map *mapaDecada, Map *mapaGenero){
   }
 }
 
+//Funcion para la lista de peliculas creada por el usuario
+//watch: una lsita creada en el main, es esta la que sera rellenada, se le borraran datos o sera mostrada
+//mapa_id: como se pide ingresar el ID de la pelicula que se quiere agregar/eliminar, este mapa es usado 
+//para buscar la existencia de ese ID y asi agregar a la lista watch la pelicula correspondiente
 void procesarWatchList(List* watch, Map *mapa_id){
   int opcion;
   char Id[100];
@@ -330,6 +359,7 @@ void procesarWatchList(List* watch, Map *mapa_id){
   printf("Proceso Finalizado\n");
 }
 
+//Funcion main
 int main(){
   int opcion;
   
@@ -344,6 +374,7 @@ int main(){
     scanf("%i", &opcion);
     switch(opcion) {
       case 1:{
+        //Cargar archivo
         cargarPeliculas(peliculasGenero, peliculasDirector, peliculasDecada, peliculasId);
         break;
       }
